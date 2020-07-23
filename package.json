@@ -2,8 +2,14 @@
   "name": "facebook-chat-socket",
   "version": "0.0.1",
   "dependencies": {
-    "express": "~4.11.2",
+    "axios": "^0.19.2",
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "mysql": "^2.16.0",
+    "mysql2": "^2.1.0",
+    "redis": "^3.0.2",
+    "sequelize": "^5.21.12",
     "socket.io": "~1.3.3",
-    "mysql": "~2.5.5"
+    "uuid": "^8.1.0"
   }
 }

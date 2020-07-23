@@ -2,6 +2,7 @@ var app     =     require("express")();
 var mysql   =     require("mysql");
 var http    =     require('http').Server(app);
 var io      =     require("socket.io")(http);
+const bodyParser = require('body-parser');
 
 /* Creating POOL MySQL connection.*/
 
@@ -10,13 +11,22 @@ var pool    =    mysql.createPool({
       host              :   'localhost',
       user              :   'root',
       password          :   '',
-      database          :   'fbstatus',
+      database          :   'fb_status',
       debug             :   false
 });
+
+
+const apiRoutes = require('./api-routes');
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 
 app.get("/",function(req,res){
     res.sendFile(__dirname + '/index.html');
 });
+
+app.use('/api', apiRoutes);
 
 /*  This is auto initiated event when Client connects to Your Machien.  */
 
