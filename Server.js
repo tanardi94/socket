@@ -3,6 +3,7 @@ var mysql   =     require("mysql");
 var http    =     require('http').Server(app);
 var io      =     require("socket.io")(http);
 const bodyParser = require('body-parser');
+var cors = require('cors');
 
 /* Creating POOL MySQL connection.*/
 
@@ -26,6 +27,7 @@ app.get("/",function(req,res){
     res.sendFile(__dirname + '/index.html');
 });
 
+app.use(cors());
 app.use('/api', apiRoutes);
 
 /*  This is auto initiated event when Client connects to Your Machien.  */

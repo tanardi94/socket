@@ -60,27 +60,7 @@ setInterval(function() {
   item.Coordinate.Longitude = longlats[count][1];
   item.Coordinate.Latitude = longlats[count][0];
   count++;
-  var data = {
-    lat: longlats[count][0],
-    lng: longlats[count][1]
-  };
-  var x = new FormData();
-  x.append('lat', longlats[count][0]);
-  x.append('lng', longlats[count][1]);
   
-  $.ajax({
-    url: url,
-    data: {
-      lat: item.Coordinate.Latitude,
-      lng: item.Coordinate.Longitude
-    },
-    type: 'POST',
-    beforeSend: function (xhr) {
-      xhr.setRequestHeader('Authorization', 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6Ijc1OWRmYzhjNmIyYTAxNzI2ODAwMzFiYTkzMWE5NjgxYTdmZjQ4Mzg0Mzk0NWY4MjhlY2QxODc4OGU5YzBhMzczODM0ZGU1YTQ4ZmFmNDA2In0.eyJhdWQiOiIxIiwianRpIjoiNzU5ZGZjOGM2YjJhMDE3MjY4MDAzMWJhOTMxYTk2ODFhN2ZmNDgzODQzOTQ1ZjgyOGVjZDE4Nzg4ZTljMGEzNzM4MzRkZTVhNDhmYWY0MDYiLCJpYXQiOjE1OTM1ODcyOTYsIm5iZiI6MTU5MzU4NzI5NiwiZXhwIjoxNjI1MTIzMjk2LCJzdWIiOiIzNDAzMjYiLCJzY29wZXMiOltdfQ.Qy8kDSv295KlTHVTTyuJv97yAzBYrgMQillS4omOHfUeXzNuMipys3EV1luiGYpA5VXwzacj_eo_fg5KtPYTwdmP4lQu7i3aEyc_TVcipVymIKT7TaIEAOYw7_fTlcj_gJ1yEbvrjRaDv-Wg3YDodpbDXZ_gjGjLuSnBpqEKoXPpoTmArvwt5XGLQHJ9t5rVT3SXJwVZ6GDtYGc2oUiLpCS9hWbMPj73Sl9Z4zQ62a8SHOIXaMmbyyDFuESzfqZkwJWLjb-xLRZAHfHYl2MSdSfRcpqSyOEoUUnPgDH2jUsiaFqKTCpXw5Ea0ugI4_4JiKOsvFF2ER_xyhwkci8oD862MLIFA5Z4v4iC6uOIsOoDETpl-Siz073afSgnY9G8eNxBmtgbN7vtp8PKkL9q5BnUKnEzMPG9VL5c8lOU_UOUv2mNFzVgILgW4i3qE0akLf7oO2nU5e7NdBbR4tpE-ftR5MZOIy1avbKdLigLEuoL-t0LOO7Im_Ss2uilWxglqQ_IhUwnM8WzwNySGhmWWykvrP01KuKihMxaw7kIUuwJ7bUWrbnTbROnjGpxZ_qOQp0R2ElYRKAhLYg2hAwvfDPvt85ZfRPXIxx7FRKOTEVx8tj-PFVCeWEtvBaOwJEuXd1jsGE7UcK_bRhmF2vANxXk5RR1l3HSVvtWiQVN1mE');
-    },
-    success: function() {
-      console.log('success' + item.Coordinate);
-    }
-  });
+  
   updateCoordinate(item);
 }, 5000);
