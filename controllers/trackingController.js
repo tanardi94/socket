@@ -5,6 +5,16 @@ const auth = require('../helpers/auth');
 const trackFunction = require('../helpers/trackFunctions');
 const axios = require('axios');
 
+exports.trying = (req, res) => {
+    if(req.params.app_id !== 'undefined') {
+        var app_id = req.params.app_id;
+        var app = trackFunction.getApp(app_id);
+        response.ok(app, res);
+    } else {
+        response.notFound("App", res);
+    }
+}
+
 exports.driver_update_location = (req, res) => {
     var bearerToken = req.headers.authorization;
     if(typeof bearerToken === 'undefined') {
@@ -75,6 +85,41 @@ exports.update_order_location = (req, res) => {
         // }
 
     });
+}
+
+exports.driverUpdateOrder = (req, res) => {
+    var bearerToken = req.headers.authorization;
+    if(typeof bearerToken === 'undefined') {
+        response.unauthenticated(res);
+    }
+
+    auth.User(bearerToken.split(' ')[1], (user) => {
+        if(user != false) {
+            if(typeof req.body.driver_order !== 'undefined') {
+                var driver_order = req.body.driver_order;
+                if(typeof req.body.appuid !== 'undefined') {
+                    var app_id = trackFunction.getApp(req.body.appuid);
+                } else {
+                    var app_id = -1;
+                }
+
+                if(typeof req.body.driver_auto_accept !== 'undefined') {
+                    var driver_auto_accept = req.body.driver_auto_accept;
+                } else {
+                    var driver_auto_accept = 0;
+                }
+
+                var response = trackFunction.updateDriverOrder(driver_order, user.id, driver_auto_accept);
+                
+                if(typeof req.body.driver_lat !== 'undefined' && typeof req.body.driver_lng !== 'undefined') {
+                    var account = trackFunction.updateDriverLocation(req.body.driver_lat, req.body.driver_lng, user.id);
+                } else {
+                    var account = trackFunction.getDriverLocation(user.id);
+                }
+
+            }
+        }
+    })
 }
 
 exports.tryingLocationInterval = (req, res) => {

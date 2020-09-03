@@ -52,3 +52,19 @@ exports.getDriverLocation = (user_id, callback) => {
         }
     })
 }
+
+exports.updateDriverOrder = (driver_order, user_id, driver_auto_accept = 0, callback) => {
+    connection.query("UPDATE users SET driver_order = ?, driver_auto_accept = ?, last_update_date = NOW(), last_updated_by = ? WHERE id = ?", [driver_order, driver_auto_accept,user_id, user_id], (error, result, fields) => {
+        if(error || result.length < 1) {
+            return callback(false);
+        } else {
+            connection.query("SELECT view_uid, name, driver_order, driver_auto_accept FROM users WHERE id = ?", user_id, (error, result, fields) => {
+                if(error || result.length < 1) {
+                    return callback(false);
+                } else {
+                    return callback(result[0]);
+                }
+            });
+        }
+    });
+}

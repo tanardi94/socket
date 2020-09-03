@@ -3,7 +3,8 @@ var bodyParser = require('body-parser');
 var app = express();
 var cors = require('cors');
 var http = require('http').Server(app);
-var io = require('socket.io')(http);var port = process.env.PORT || 4000;
+var io = require('socket.io')(http, {origins: '*:*'});
+var port = process.env.PORT || 4000;
 var redis = require('redis');
 // Start the Server
 http.listen(port, function () {
