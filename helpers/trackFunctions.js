@@ -12,13 +12,13 @@ exports.getOrderLocation = (user, unique_id, callback) => {
         if(error) {
             return callback(false);
         } else {
-            return callback(result[0]);
+            return callback(result);
         }
     });
 }
 
 exports.getApp = (view_uid, callback) => {
-    connection.query("SELECT * from app where status = 1 and view_uid = ?", view_uid, (error, result, fields) => {
+    connection.query("SELECT id, name, codename, view_uid, creation_date, last_update_date from app where status = 1 and view_uid = ?", view_uid, (error, result, fields) => {
         if(error || result.length < 1) {
             return callback(false);
         } else {
@@ -36,7 +36,7 @@ exports.updateDriverLocation = (driverLat, driverLng, user_id, callback) => {
                 if(error || result.length < 1) {
                     return callback(false);
                 } else {
-                    return callback(result[0]);
+                    return callback(result);
                 }
             })
         }
@@ -48,7 +48,7 @@ exports.getDriverLocation = (user_id, callback) => {
         if(error || result.length < 1) {
             return callback(false);
         } else {
-            return callback(result[0]);
+            return callback(result);
         }
     })
 }
@@ -62,7 +62,7 @@ exports.updateDriverOrder = (driver_order, user_id, driver_auto_accept = 0, call
                 if(error || result.length < 1) {
                     return callback(false);
                 } else {
-                    return callback(result[0]);
+                    return callback(result);
                 }
             });
         }

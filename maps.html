@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+    <body style="margin: 0">
+        <div id="map" style="width: 100vw; height: 100vh;"></div>
+        <script src="http://js.api.here.com/v3/3.0/mapsjs-core.js" type="text/javascript" charset="utf-8"></script>
+        <script src="http://js.api.here.com/v3/3.0/mapsjs-service.js" type="text/javascript" charset="utf-8"></script>
+        <script src="http://js.api.here.com/v3/3.0/mapsjs-mapevents.js" type="text/javascript" charset="utf-8"></script>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+        <script>
+            const platform = new H.service.Platform({
+            //   'app_id': '0JK53jN7Faa5a5rF35Sz',
+            //   'app_code': 'SqWcupOF8jY3JHYYKD0NSw'
+              'apikey': 'BCBkA-zdB3UwXP9SnW_PXII0Kv-uxevI4usfR1iZIK4'
+            });
+            const map = new H.Map(
+                document.getElementById("map"),
+                platform.createDefaultLayers().normal.map,
+                {
+                    zoom: 15,
+                    center: { lat: -7.275561, lng: 112.688907 }
+                }
+            );
+            const mapEvent = new H.mapevents.MapEvents(map);
+            const behavior = new H.mapevents.Behavior(mapEvent);
+            const socket = io("http://127.0.0.1:5000");
+            socket.on("marker", data => {
+              const marker = new H.map.Marker(data);
+              map.addObject(marker);
+            });
+
+            map.addEventListener("tap", event => {
+                const position = map.screenToGeo(
+                    event.currentPointer.viewportX, 
+                    event.currentPointer.viewportY
+                );
+                const marker = new H.map.Marker(position);
+                // map.addObject(marker);
+                socket.emit("marker", position);
+            });
+        </script>
+    </body>
+</html>

@@ -1,8 +1,5 @@
 
 //Base Layer with Open Street Maps
-// var tracking = require('../../helpers/trackFunctions');
-const http = new XMLHttpRequest();
-const url = 'localhost:3000/api/track';
 var baseMapLayer = new ol.layer.Tile({
   source: new ol.source.OSM()
 });
@@ -44,23 +41,28 @@ function updateCoordinate(item) {
   featureToUpdate.getGeometry().setCoordinates(coord);
 }
 
+const sockets = io({ transports: ['websocket'] });
 
 var longlats =
-[[-7.276343, 112.688602],
-[-7.276902, 112.688999],
-[-7.277647, 112.688092],
-[-7.277684, 112.688859],
-[-7.275561, 112.688907]];
+[
+  [-7.276343, 112.688602],
+  [-7.276902, 112.688999],
+  [-7.277647, 112.688092],
+  [-7.277684, 112.688859],
+  [-7.275561, 112.688907]
+];
 var count = 1;
 var item = {};
 item.id = marker.getId;
 item.Coordinate = {};
 
 setInterval(function() {
+  item.Coordinate.Count = count;
   item.Coordinate.Longitude = longlats[count][1];
   item.Coordinate.Latitude = longlats[count][0];
+  sockets.emit('lastKnownLocation', item);
   count++;
   
   
   updateCoordinate(item);
-}, 5000);
+}, 3000);

@@ -4,14 +4,69 @@ const connection = require('../conn');
 const auth = require('../helpers/auth');
 const trackFunction = require('../helpers/trackFunctions');
 const axios = require('axios');
+const Socketio = require('socket.io');
+const redis = require('redis');
+const client  = redis.createClient();
+
+exports.usingRedis = (req, res) => {
+    var uniqueKeys = req.body.key
+    var latitude = req.body.latitude
+    var longitude = req.body.longitude
+
+    var errors = []
+    if(typeof uniqueKeys === 'undefined') {
+        errors.push("Parameter key harus diisi")
+    }
+
+    if(typeof latitude === 'undefined') {
+        errors.push("Parameter latitude harus diisi")
+    }
+
+    if(typeof longitude === 'undefined') {
+        errors.push("Parameter longitude harus diisi")
+    }
+
+    if(errors.length > 0) {
+        response.invalidParameter(errors, res)
+    }
+
+    Socketio.on("connection", socket => {
+        // for(let i = 0; i < markers.length; i++) {
+        //     socket.emit("marker", markers[i]);
+    
+        // }
+        socket.on(uniqueKeys, data => {
+            // markers.push(data);
+            // console.log(data);
+            client.set(uniqueKeys, latitude + ", " + longitude);
+    
+            client.get(uniqueKeys, (err, replies) => {
+                if(err) {
+                    response.failure(err, res);
+                } else {
+                    response.ok(replies, res);
+                }
+            });
+            // Socketio.emit("marker", data);
+        });
+    });
+
+    
+
+}
 
 exports.trying = (req, res) => {
-    if(req.params.app_id !== 'undefined') {
-        var app_id = req.params.app_id;
-        var app = trackFunction.getApp(app_id);
-        response.ok(app, res);
+    if(typeof req.query.view_uid !== 'undefined') {
+        // response.ok(req.query, res);
+        trackFunction.getApp(req.query.view_uid, (app) => {
+            if(app !== false) {
+                response.ok(app, res);
+            } else {
+                response.notFound("App", res);
+            }
+        });
     } else {
-        response.notFound("App", res);
+        response.invalidParameter("Parameter View UID tidak ada", res);
     }
 }
 
@@ -25,28 +80,23 @@ exports.driver_update_location = (req, res) => {
 
     auth.User(bearerToken.split(' ')[1], (user) => {
         if(user != false) {
-            trackFunction.getApp(req.body.appuid, (app) => {
-                if(app === false) {
-                    response.notFound("App", res);
-                }
-                if(typeof driverLat !== 'undefined' && typeof driverLng !== 'undefined') {
-                    trackFunction.updateDriverLocation(driverLat, driverLng, user.id, (account) => {
-                        if(account != false) {
-                            response.ok(account, res);
-                        } else {
-                            response.notFound("User");
-                        }
-                    });
-                } else {
-                    trackFunction.getDriverLocation(user.id, (account) => {
-                        if(account != false) {
-                            response.ok(account, res);
-                        } else {
-                            response.notFound("User");
-                        }
-                    })
-                }
-            });
+            if(typeof driverLat !== 'undefined' && typeof driverLng !== 'undefined') {
+                trackFunction.updateDriverLocation(driverLat, driverLng, user.id, (account) => {
+                    if(account != false) {
+                        response.ok(account, res);
+                    } else {
+                        response.notFound("Data");
+                    }
+                });
+            } else {
+                trackFunction.getDriverLocation(user.id, (account) => {
+                    if(account != false) {
+                        response.ok(account, res);
+                    } else {
+                        response.notFound("User");
+                    }
+                })
+            }
         } else {
             response.notFound('user', res);
         }
@@ -61,7 +111,9 @@ exports.update_order_location = (req, res) => {
         response.unauthenticated(res);
     }
 
-
+    if(typeof req.body.lat === 'undefined' || typeof req.body.lng === 'undefined') {
+        response.invalidParameter("Parameter tidak lengkap", res);
+    }
 
     var lat = req.body.lat;
     var lng = req.body.lng;
@@ -70,16 +122,19 @@ exports.update_order_location = (req, res) => {
     auth.User(bearerToken.split(' ')[1], (user) => {
         if(user != false) {
             trackFunction.locationUpdate(user, lat, lng);
-            return response.ok("Good", res);
+            response.ok("Order Location Updated", res);
 
+            trackFunction.getOrderLocation(user.id, unique_id, (order) => {
+                if(order != false) {
+                    response.ok(order, res);
+                } else {
+                    response.failure("Failed Process", res);
+                }
+            });
+
+        } else {
+            response.failure("Failed to save", res);
         }
-        //     trackFunction.getOrderLocation(user.id, unique_id, (order) => {
-        //         if(order != false) {
-        //             response.ok(order, res);
-        //         } else {
-        //             response.failure("Failed Process", res);
-        //         }
-        //     });
         // } else {
         //     response.notFound('user', res);
         // }
@@ -95,29 +150,37 @@ exports.driverUpdateOrder = (req, res) => {
 
     auth.User(bearerToken.split(' ')[1], (user) => {
         if(user != false) {
-            if(typeof req.body.driver_order !== 'undefined') {
-                var driver_order = req.body.driver_order;
-                if(typeof req.body.appuid !== 'undefined') {
-                    var app_id = trackFunction.getApp(req.body.appuid);
-                } else {
-                    var app_id = -1;
-                }
-
-                if(typeof req.body.driver_auto_accept !== 'undefined') {
-                    var driver_auto_accept = req.body.driver_auto_accept;
-                } else {
-                    var driver_auto_accept = 0;
-                }
-
-                var response = trackFunction.updateDriverOrder(driver_order, user.id, driver_auto_accept);
-                
-                if(typeof req.body.driver_lat !== 'undefined' && typeof req.body.driver_lng !== 'undefined') {
-                    var account = trackFunction.updateDriverLocation(req.body.driver_lat, req.body.driver_lng, user.id);
-                } else {
-                    var account = trackFunction.getDriverLocation(user.id);
-                }
-
+            if(typeof req.body.driver_order === 'undefined') {
+                response.invalidParameter("Parameter tidak lengkap", res);
             }
+            var driver_order = req.body.driver_order;
+
+            if(typeof req.body.driver_auto_accept !== 'undefined') {
+                var driver_auto_accept = req.body.driver_auto_accept;
+            } else {
+                var driver_auto_accept = 0;
+            }
+
+            trackFunction.updateDriverOrder(driver_order, user.id, driver_auto_accept, (resp) => {
+                if(typeof req.body.driver_lat !== 'undefined' && typeof req.body.driver_lng !== 'undefined') {
+                    trackFunction.updateDriverLocation(req.body.driver_lat, req.body.driver_lng, user.id, (account) => {
+                        if(account !== false) {
+                            resp['result'] = account;
+                            resp['message'] = "Informasi telah diperbarui";
+                            response.ok(resp, res);
+                        }
+                    });
+                } else {
+                    trackFunction.getDriverLocation(user.id, (account) => {
+                        if(account !== false) {
+                            resp['result'] = account;
+                            resp['message'] = "Informasi telah diperbarui";
+                            response.ok(resp, res);
+                        }
+                    });
+                }
+            });
+            
         }
     })
 }

@@ -6,6 +6,8 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http, {origins: '*:*'});
 var port = process.env.PORT || 4000;
 var redis = require('redis');
+var client = redis.createClient();
+var redisSubscriber = redis.createClient();
 // Start the Server
 http.listen(port, function () {
     console.log('Server Started. Listening on :' + port);
@@ -41,20 +43,26 @@ io.on('connection', function (socket) {
     socket.on('disconnect', function() {
       console.log('Got disconnect!');
    });
+   socket.on('lastKnownLocations', function (data) {
+            
+            client.set('position', data.Coordinate.Latitude + ', ' + data.Coordinate.Longitude);
+            console.log(data);
+     });
    socket.on('lastKnownLocation', function (data) {
-            var location = JSON.stringify(data);
-           redisPublisher.publish('locationUpdate', location);
+            
+            client.set('position', data.Coordinate.Latitude + ', ' + data.Coordinate.Longitude);
+            console.log(data);
      });
   });
 
 
-var redis = require('redis');
-var redisSubscriber = redis.createClient();
-var redisPublisher = redis.createClient();
-redisSubscriber.on('subscribe', function (channel, count) {
-        console.log('client subscribed to ' + channel + ', ' + count + ' total subscriptions');
-});
-redisSubscriber.on('message', function (channel, message) {
-    console.log('client channel ' + channel + ': ' + message);
-    io.emit('locationUpdate', message);
-});
+// var redis = require('redis');
+// var redisSubscriber = redis.createClient();
+// var redisPublisher = redis.createClient();
+// redisSubscriber.on('subscribe', function (channel, count) {
+//         console.log('client subscribed to ' + channel + ', ' + count + ' total subscriptions');
+// });
+// redisSubscriber.on('message', function (channel, message) {
+//     console.log('client channel ' + channel + ': ' + message);
+//     io.emit('locationUpdate', message);
+// });
